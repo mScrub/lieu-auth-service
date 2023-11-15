@@ -68,7 +68,7 @@ router.post("/signup", async (req, res) => {
       } else if (errorMsg.includes("(?=.*[0-9])")) {
         errorMsg = "Password needs to have 1 number.";
       }
-      res.json({
+      res.status(400).json({
         message: errorMsg,
         isLoggedIn: false
       });
@@ -80,11 +80,11 @@ router.post("/signup", async (req, res) => {
         name: name
       });
       if (success) {
-        res.json({
+        res.status(201).json({
           message: "User created successfully"
         })
       } else {
-        res.status(500).json({
+        res.status(400).json({
           message: `Failed to create the user ${email}, ${name}`,
           title: "User creation failed"
         });
@@ -106,20 +106,19 @@ router.post("/login", async (req, res) => {
   const user = users.find(user => user.email === email);
 
   if (!user) {
-    return res.json({
+    return res.status(400).json({
       message: "You entered the wrong email!"
     })
   }
 
   const isValidPasword = bcrypt.compareSync(password, user.hashed_password);
   if (isValidPasword) {
-    console.log("User's logged in");
     req.session.userID = user.user_id;
     req.session.name = user.name;
     req.session.authenticated = true;
     req.session.email = email;
     req.session.cookie.maxAge = expireTime;
-    return res.json({
+    return res.status(200).json({
       message: "Login successful!",
       "user": {
         "user_id": user.user_id,
@@ -129,7 +128,7 @@ router.post("/login", async (req, res) => {
     });
   } else {
     req.session.authenticated = false;
-    return res.status(401).json({
+    return res.status(400).json({
       message: "Login failed!"
     })
   }
