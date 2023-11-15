@@ -16,94 +16,124 @@ const mongodb_session_secret = process.env.MONGODB_SESSION_SECRET;
 const node_session_secret = process.env.NODE_SESSION_SECRET;
 
 const passwordSchema = Joi.object({
-    password: Joi.string().pattern(/(?=.*[a-z])/).pattern(/(?=.*[A-Z])/).pattern(/(?=.*[!@#$%^&*])/).pattern(/(?=.*[0-9])/).min(12).max(50).required()
-  });
+  password: Joi.string().pattern(/(?=.*[a-z])/).pattern(/(?=.*[A-Z])/).pattern(/(?=.*[!@#$%^&*])/).pattern(/(?=.*[0-9])/).min(12).max(50).required()
+});
 
 var mongoStore = MongoStore.create({
-    mongoUrl: `mongodb+srv://${mongodb_user}:${mongodb_password}@cluster3.s3p0zue.mongodb.net/?retryWrites=true&w=majority`,
-    crypto: {
-      secret: mongodb_session_secret,
-    },
-  });
+  mongoUrl: `mongodb+srv://${mongodb_user}:${mongodb_password}@cluster3.s3p0zue.mongodb.net/?retryWrites=true&w=majority`,
+  crypto: {
+    secret: mongodb_session_secret,
+  },
+});
 
 router.use(
-    session({
-      secret: node_session_secret,
-      store: mongoStore,
-      saveUninitialized: false,
-      resave: true,
-    })
+  session({
+    secret: node_session_secret,
+    store: mongoStore,
+    saveUninitialized: false,
+    resave: true,
+  })
 );
 
 
 
 router.get("/checklogin", async (req, res) => {
-    const invalid = req.query.invalid === undefined ? true : req.query.invalid;
-    res.json({ invalid, isLoggedIn: false });
+  const invalid = req.query.invalid === undefined ? true : req.query.invalid;
+  res.json({
+    invalid,
+    isLoggedIn: false
   });
-  
+});
+
 
 router.post("/signup", async (req, res) => {
-    console.log("Sign up route")
-    try{ 
-        var email = req.body.email;
-        var password = req.body.password;
-        var name = req.body.name;
-        var hashedPassword = bcrypt.hashSync(password, saltRounds);
-        const validationResult = passwordSchema.validate({ password });
-        if (validationResult.error) {
-          let errorMsg = validationResult.error.details[0].message;
-      
-          if (errorMsg.includes("(?=.*[a-z])")) {
-            errorMsg = "Password must have at least 1 lowercase.";
-          } else if (errorMsg.includes("(?=.*[A-Z])")) {
-            errorMsg = "Password must have at least 1 uppercase.";
-          } else if (errorMsg.includes("(?=[!@#$%^&*])")) {
-            errorMsg = "Password requires 1 special character.";
-          } else if (errorMsg.includes("(?=.*[0-9])")) {
-            errorMsg = "Password needs to have 1 number.";
-          }
-          res.json({ message: errorMsg, isLoggedIn: false });
-          return;
-        } else {
-          var success = await db_users.createUser({ email: email, hashedPassword: hashedPassword, name: name });
-          if (success) {
-            res.json({message: "User created successfully"})
-          } else {
-            res.status(500).json({ message: `Failed to create the user ${email}, ${name}`, title: "User creation failed" });
-          }
-        } 
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({message: "Internal Server Error"});
-    }
-  });
+  console.log("Sign up route")
+  try {
+    var email = req.body.email;
+    var password = req.body.password;
+    var name = req.body.name;
+    var hashedPassword = bcrypt.hashSync(password, saltRounds);
+    const validationResult = passwordSchema.validate({
+      password
+    });
+    if (validationResult.error) {
+      let errorMsg = validationResult.error.details[0].message;
 
-
-  router.post("/login", async (req, res) => {
-    let email = req.body.email;
-    let password = req.body.password;
-    let users = await db_users.getUsers();
-    const user = users.find(user => user.email === email);
-
-    if (!user) { 
-        return res.json({message: "You entered the wrong email!"})
-    }
-
-    const isValidPasword = bcrypt.compareSync(password, user.hashed_password);
-    if (isValidPasword) {
-        console.log("User's logged in");
-        req.session.userID = user.user_id;
-        req.session.name = user.name;
-        req.session.authenticated = true;
-        req.session.email = email;
-        req.session.cookie.maxAge = expireTime;
-        return res.json({message: "Login successful!"});
+      if (errorMsg.includes("(?=.*[a-z])")) {
+        errorMsg = "Password must have at least 1 lowercase.";
+      } else if (errorMsg.includes("(?=.*[A-Z])")) {
+        errorMsg = "Password must have at least 1 uppercase.";
+      } else if (errorMsg.includes("(?=[!@#$%^&*])")) {
+        errorMsg = "Password requires 1 special character.";
+      } else if (errorMsg.includes("(?=.*[0-9])")) {
+        errorMsg = "Password needs to have 1 number.";
+      }
+      res.json({
+        message: errorMsg,
+        isLoggedIn: false
+      });
+      return;
     } else {
-        req.session.authenticated = false;
-        return res.status(401).json({message: "Login failed!"})
+      var success = await db_users.createUser({
+        email: email,
+        hashedPassword: hashedPassword,
+        name: name
+      });
+      if (success) {
+        res.json({
+          message: "User created successfully"
+        })
+      } else {
+        res.status(500).json({
+          message: `Failed to create the user ${email}, ${name}`,
+          title: "User creation failed"
+        });
+      }
     }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Internal Server Error"
+    });
+  }
+});
 
-  })
 
-  module.exports = router;
+router.post("/login", async (req, res) => {
+  let email = req.body.email;
+  let password = req.body.password;
+  let users = await db_users.getUsers();
+  const user = users.find(user => user.email === email);
+
+  if (!user) {
+    return res.json({
+      message: "You entered the wrong email!"
+    })
+  }
+
+  const isValidPasword = bcrypt.compareSync(password, user.hashed_password);
+  if (isValidPasword) {
+    console.log("User's logged in");
+    req.session.userID = user.user_id;
+    req.session.name = user.name;
+    req.session.authenticated = true;
+    req.session.email = email;
+    req.session.cookie.maxAge = expireTime;
+    return res.json({
+      message: "Login successful!",
+      "user": {
+        "user_id": user.user_id,
+        "user_name": user.name,
+        "email": user.email
+      }
+    });
+  } else {
+    req.session.authenticated = false;
+    return res.status(401).json({
+      message: "Login failed!"
+    })
+  }
+
+})
+
+module.exports = router;
