@@ -49,10 +49,10 @@ router.get("/checklogin", async (req, res) => {
 router.post("/signup", async (req, res) => {
   console.log("Sign up route")
   try {
-    var email = req.body.email;
-    var password = req.body.password;
-    var name = req.body.name;
-    var hashedPassword = bcrypt.hashSync(password, saltRounds);
+    let email = req.body.email;
+    let password = req.body.password;
+    let name = req.body.name;
+    let hashedPassword = bcrypt.hashSync(password, saltRounds);
     const validationResult = passwordSchema.validate({
       password
     });
@@ -74,7 +74,7 @@ router.post("/signup", async (req, res) => {
       });
       return;
     } else {
-      var success = await db_users.createUser({
+      let success = await db_users.createUser({
         email: email,
         hashedPassword: hashedPassword,
         name: name
