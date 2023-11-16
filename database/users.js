@@ -6,7 +6,7 @@ async function createUser(postData) {
     VALUES (:email, :passwordHash, :name, 
       (SELECT user_type_id
       FROM user_type
-      WHERE user_type = "user"));
+      WHERE user_type = "admin"));
 	`;
 
   let params = {
