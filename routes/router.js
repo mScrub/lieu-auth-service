@@ -142,7 +142,7 @@ router.get('/logout', async (req, res) => {
         message: "Logout failed"
       })
     } else {
-      return res.status(205).json({
+      return res.status(200).json({
         message: "Logged out successfully"
       })
     }
