@@ -79,7 +79,7 @@ router.post("/signup", async (req, res) => {
         hashedPassword: hashedPassword,
         name: name
       });
-      if (success.CreateFlag === true) {
+      if (success.createFlag === true) {
         res.status(201).json({
           message: "User created successfully"
         })
