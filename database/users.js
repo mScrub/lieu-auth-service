@@ -4,9 +4,9 @@ async function createUser(postData) {
   let createUserSQL = `
     INSERT INTO user (email, hashed_password, name, user_type_id)
     VALUES (:email, :passwordHash, :name, 
-      SELECT user_type
+      (SELECT user_type_id
       FROM user_type
-      WHERE user_type = "admin");
+      WHERE user_type = "admin"));
 	`;
 
   let params = {
@@ -15,20 +15,27 @@ async function createUser(postData) {
     name: postData.name
   }
 
-	try {
-		await mySqlDatabase.query(createUserSQL, params);
-        console.log("Successfully created user");
-		return true;
-	}
-	catch(err) {
-        console.log("Error inserting user");
-        console.log(err);
-		return false;
-	}
+  try {
+    await mySqlDatabase.query(createUserSQL, params);
+    console.log("Successfully created user");
+    return {
+      createFlag: true
+    };
+  } catch (err) {
+    console.log("Error inserting user");
+    console.log(err);
+    if (err.message && err.message.includes("Duplicate")) {
+      return {
+        createFlag: false,
+        errorMsg: err.message,
+      }
+    }
+    return false;
+  }
 }
 
 async function getUsers() {
-	let getUsersSQL = `
+  let getUsersSQL = `
       SELECT * 
       FROM user
       JOIN user_type 
@@ -38,8 +45,7 @@ async function getUsers() {
   try {
     const results = await mySqlDatabase.query(getUsersSQL);
     return results[0];
-  }
-  catch (err) {
+  } catch (err) {
     console.log("Error getting users");
     console.log(err);
     return false;
@@ -48,4 +54,7 @@ async function getUsers() {
 
 
 
-module.exports = { createUser, getUsers };
+module.exports = {
+  createUser,
+  getUsers
+};

@@ -79,19 +79,19 @@ router.post("/signup", async (req, res) => {
         hashedPassword: hashedPassword,
         name: name
       });
-      if (success) {
+      if (success.CreateFlag === true) {
         res.status(201).json({
           message: "User created successfully"
         })
       } else {
         res.status(400).json({
           message: `Failed to create the user ${email}, ${name}`,
-          title: "User creation failed"
+          title: "User creation failed",
+          errorMsg: success.errorMsg
         });
       }
     }
   } catch (error) {
-    console.error(error);
     res.status(500).json({
       message: "Internal Server Error"
     });
