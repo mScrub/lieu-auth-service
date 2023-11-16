@@ -138,9 +138,13 @@ router.post("/login", async (req, res) => {
 router.get('/logout', async (req, res) => {
   req.session.destroy((err) => {
     if (err) {
-      return res.json(500).send({message: "Logout failed"})
+      return res.status(500).json({
+        message: "Logout failed"
+      })
     } else {
-      return res.json(205).send({message: "Logged out successfully"})
+      return res.status(205).json({
+        message: "Logged out successfully"
+      })
     }
   })
 })
