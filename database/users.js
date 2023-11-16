@@ -2,8 +2,11 @@ const mySqlDatabase = include('databaseConnectionSQL');
 
 async function createUser(postData) {
   let createUserSQL = `
-    INSERT INTO user (email, hashed_password, name)
-    VALUES (:email, :passwordHash, :name);
+    INSERT INTO user (email, hashed_password, name, user_type_id)
+    VALUES (:email, :passwordHash, :name, 
+      SELECT user_type
+      FROM user_type
+      WHERE user_type = "admin");
 	`;
 
   let params = {
@@ -26,8 +29,10 @@ async function createUser(postData) {
 
 async function getUsers() {
 	let getUsersSQL = `
-		SELECT hashed_password, email, user_id, name
-		FROM user;
+      SELECT * 
+      FROM user
+      JOIN user_type 
+      ON user.user_type_id = user_type.user_type_id; 
 	`;
 
   try {
