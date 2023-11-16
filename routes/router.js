@@ -120,10 +120,11 @@ router.post("/login", async (req, res) => {
     req.session.cookie.maxAge = expireTime;
     return res.status(200).json({
       message: "Login successful!",
-      "user": {
-        "user_id": user.user_id,
-        "user_name": user.name,
-        "email": user.email
+      user: {
+        user_id: user.user_id,
+        user_name: user.name,
+        email: user.email,
+        user_type: user.user_type
       }
     });
   } else {
