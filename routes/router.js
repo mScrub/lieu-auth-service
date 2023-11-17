@@ -38,10 +38,8 @@ router.use(
 
 
 router.get("/checklogin", async (req, res) => {
-  const invalid = req.query.invalid === undefined ? true : req.query.invalid;
-  res.json({
-    invalid,
-    isLoggedIn: false
+  return res.json({
+    authenticated: req.session.authenticated 
   });
 });
 
