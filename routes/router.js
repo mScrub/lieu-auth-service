@@ -39,8 +39,7 @@ router.use(
 
 router.get("/checklogin", async (req, res) => {
   return res.json({
-    authenticated: req.session.authenticated,
-    sessionObjectTest: req.session
+    authenticated: req.session.authenticated
   });
 });
 
