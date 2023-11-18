@@ -34,16 +34,16 @@ async function createUser(postData) {
   }
 }
 
-async function getUser(email) {
+async function getUser(username) {
   let getUsersSQL = `
       SELECT * 
       FROM user
       JOIN user_type 
       ON user.user_type_id = user_type.user_type_id
-      WHERE user.email = :email
+      WHERE user.username = :username
 	`;
 
-  const param = { email };
+  const param = { username: username };
 
   try {
     const results = await mySqlDatabase.execute(getUsersSQL, param);

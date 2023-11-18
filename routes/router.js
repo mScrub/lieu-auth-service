@@ -69,23 +69,25 @@ router.post("/signup", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  let email = req.body.email;
+  let username = req.body.username;
   let password = req.body.password;
-  let user = await db_users.getUser(email);
+  let user = await db_users.getUser(username);
 
   if (!user) {
     return res.status(400).json({
-      message: "You entered the wrong email!"
+      message: "You entered the wrong username!"
     })
   }
 
   const isValidPasword = bcrypt.compareSync(password, user.hashed_password);
   if (isValidPasword) {
     req.session.userID = user.user_id;
-    req.session.name = user.name;
+    req.session.username = user.username;
     req.session.authenticated = true;
-    req.session.email = email;
+    req.session.email = user.email;
     req.session.user_type = user.user_type;
+
+    res.cookie('role', user.user_type);
 
     return res.status(200).json({
       message: "Login successful!",
@@ -122,7 +124,7 @@ router.get('/me', async (req, res) => {
   const session = req.session;
 
   return res.json({
-    name: session.name,
+    username: session.username,
     email: session.email,
     user_type: session.user_type
   })
