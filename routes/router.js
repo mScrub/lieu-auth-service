@@ -1,48 +1,20 @@
 const router = require("express").Router();
-const MongoStore = require("connect-mongo");
-const session = require("express-session");
 const bcrypt = require("bcrypt");
 const Joi = require("joi");
 require("dotenv").config();
 
 const db_users = include('database/users')
-
 const saltRounds = 12;
-const expireTime = 60 * 60 * 1000;
-
-const mongodb_user = process.env.MONGODB_USER;
-const mongodb_password = process.env.MONGODB_PASSWORD;
-const mongodb_session_secret = process.env.MONGODB_SESSION_SECRET;
-const node_session_secret = process.env.NODE_SESSION_SECRET;
 
 const passwordSchema = Joi.object({
   password: Joi.string().pattern(/(?=.*[a-z])/).pattern(/(?=.*[A-Z])/).pattern(/(?=.*[!@#$%^&*])/).pattern(/(?=.*[0-9])/).min(12).max(50).required()
 });
 
-var mongoStore = MongoStore.create({
-  mongoUrl: `mongodb+srv://${mongodb_user}:${mongodb_password}@cluster3.s3p0zue.mongodb.net/?retryWrites=true&w=majority`,
-  crypto: {
-    secret: mongodb_session_secret,
-  },
-});
-
-router.use(
-  session({
-    secret: node_session_secret,
-    store: mongoStore,
-    saveUninitialized: false,
-    resave: true,
-  })
-);
-
-
-
 router.get("/checklogin", async (req, res) => {
   return res.json({
-    authenticated: req.session.authenticated
+    authenticated: req.session.authenticated ?? false
   });
 });
-
 
 router.post("/signup", async (req, res) => {
   console.log("Sign up route")
@@ -96,12 +68,10 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-
 router.post("/login", async (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
-  let users = await db_users.getUsers();
-  const user = users.find(user => user.email === email);
+  let user = await db_users.getUser(email);
 
   if (!user) {
     return res.status(400).json({
@@ -115,7 +85,8 @@ router.post("/login", async (req, res) => {
     req.session.name = user.name;
     req.session.authenticated = true;
     req.session.email = email;
-    req.session.cookie.maxAge = expireTime;
+    req.session.user_type = user.user_type;
+
     return res.status(200).json({
       message: "Login successful!",
       user: {
@@ -131,7 +102,6 @@ router.post("/login", async (req, res) => {
       message: "Login failed!"
     })
   }
-
 })
 
 router.get('/logout', async (req, res) => {
@@ -145,6 +115,16 @@ router.get('/logout', async (req, res) => {
         message: "Logged out successfully"
       })
     }
+  })
+})
+
+router.get('/me', async (req, res) => {
+  const session = req.session;
+
+  return res.json({
+    name: session.name,
+    email: session.email,
+    user_type: session.user_type
   })
 })
 

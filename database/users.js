@@ -34,17 +34,20 @@ async function createUser(postData) {
   }
 }
 
-async function getUsers() {
+async function getUser(email) {
   let getUsersSQL = `
       SELECT * 
       FROM user
       JOIN user_type 
-      ON user.user_type_id = user_type.user_type_id; 
+      ON user.user_type_id = user_type.user_type_id
+      WHERE user.email = :email
 	`;
 
+  const param = { email };
+
   try {
-    const results = await mySqlDatabase.query(getUsersSQL);
-    return results[0];
+    const results = await mySqlDatabase.execute(getUsersSQL, param);
+    return results[0][0];
   } catch (err) {
     console.log("Error getting users");
     console.log(err);
@@ -56,5 +59,5 @@ async function getUsers() {
 
 module.exports = {
   createUser,
-  getUsers
+  getUser
 };
