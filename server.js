@@ -6,8 +6,6 @@ global.include = function(file) {
   return require(abs_path('/' + file));
 }
 
-require('dotenv').config();
-
 const MongoStore = require("connect-mongo");
 const session = require("express-session");
 

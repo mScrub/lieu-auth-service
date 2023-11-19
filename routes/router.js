@@ -1,7 +1,6 @@
 const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const Joi = require("joi");
-require("dotenv").config();
 
 const db_users = include('database/users')
 const saltRounds = 12;
