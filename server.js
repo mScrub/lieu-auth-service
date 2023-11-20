@@ -11,7 +11,8 @@ const session = require("express-session");
 
 const cors = require('cors');
 const express = require('express');
-const router = include('routes/router')
+const router = include('routes/router');
+const apiRouter = include('routes/api.router');
 
 const node_session_secret = process.env.NODE_SESSION_SECRET;
 const mongodb_user = process.env.MONGODB_USER;
@@ -22,6 +23,8 @@ const expireTime = 60 * 60 * 1000;
 
 const port = process.env.PORT || 3000;
 
+const isProd = process.env.NODE_ENV === "production";
+
 const app = express();
 
 const mongoStore = MongoStore.create({
@@ -31,8 +34,16 @@ const mongoStore = MongoStore.create({
   },
 });
 
-app.use(cors({ origin: true, credentials: true }))
+app.use(cors({ 
+  origin: true, 
+  credentials: true 
+}));
+
 app.use(express.json());
+
+if (isProd) {
+  app.set('trust proxy', 1);
+}
 
 app.use(
   session({
@@ -40,10 +51,16 @@ app.use(
     store: mongoStore,
     saveUninitialized: false,
     resave: false,
-    cookie: { secure: false, maxAge: expireTime, httpOnly: false }
+    cookie: { 
+      secure: isProd ?? false,
+      maxAge: expireTime, 
+      httpOnly: true,
+      sameSite: 'none'
+    }
   })
 );
 
+app.use('/api/v1/auth', apiRouter);
 app.use('/', router);
 
 app.listen(port, () => {
