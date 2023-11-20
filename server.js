@@ -12,7 +12,6 @@ const session = require("express-session");
 const cors = require('cors');
 const express = require('express');
 const router = include('routes/router');
-const apiRouter = include('routes/api.router');
 
 const node_session_secret = process.env.NODE_SESSION_SECRET;
 const mongodb_user = process.env.MONGODB_USER;
@@ -36,31 +35,33 @@ const mongoStore = MongoStore.create({
 
 app.use(cors({ 
   origin: ['http://localhost:4200', /\.vercel\.app$/],
-  credentials: true 
+  credentials: true,
+  methods: ['GET', 'PUT', 'POST', 'OPTIONS', 'HEAD'],
 }));
 
 app.use(express.json());
 
-if (isProd) {
-  // app.set('trust proxy', 1);
-}
-
-app.use(
-  session({
+const sessionOptions = {
     secret: node_session_secret,
     store: mongoStore,
     saveUninitialized: false,
     resave: false,
+    proxy: true,
     cookie: { 
-      secure: isProd ?? false,
+      secure: false,
       maxAge: expireTime, 
-      httpOnly: isProd ?? false,
-      sameSite: isProd ? 'none' : 'lax'
+      httpOnly: true,
+      sameSite: "none" 
     }
-  })
-);
+}
 
-app.use('/api/v1/auth', apiRouter);
+if (isProd) {
+  app.set('trust proxy', 1);
+  sessionOptions.cookie.secure = true;
+}
+
+app.use(session(sessionOptions));
+
 app.use('/', router);
 
 app.listen(port, () => {

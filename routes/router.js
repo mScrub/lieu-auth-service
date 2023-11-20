@@ -86,7 +86,12 @@ router.post("/login", async (req, res) => {
     req.session.email = user.email;
     req.session.user_type = user.user_type;
 
-    res.cookie('role', user.user_type);
+    res.cookie('role', user.user_type, {
+      expires: new Date(Date.now() + 900000), 
+      secure: true,
+      httpOnly: true,
+      sameSite: 'none'
+    });
 
     return res.status(200).json({
       message: "Login successful!",
