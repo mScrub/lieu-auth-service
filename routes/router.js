@@ -20,7 +20,7 @@ router.post("/signup", async (req, res) => {
   try {
     let email = req.body.email;
     let password = req.body.password;
-    let name = req.body.name;
+    let username = req.body.username;
     let hashedPassword = bcrypt.hashSync(password, saltRounds);
     const validationResult = passwordSchema.validate({
       password
@@ -44,9 +44,9 @@ router.post("/signup", async (req, res) => {
       return;
     } else {
       let success = await db_users.createUser({
-        email: email,
-        hashedPassword: hashedPassword,
-        name: name
+        email,
+        hashedPassword,
+        username
       });
       if (success.createFlag === true) {
         res.status(201).json({
