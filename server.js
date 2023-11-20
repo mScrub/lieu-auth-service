@@ -35,7 +35,7 @@ const mongoStore = MongoStore.create({
 });
 
 app.use(cors({ 
-  origin: true, 
+  origin: ['http://localhost:4200', /\.vercel\.app$/],
   credentials: true 
 }));
 
@@ -54,8 +54,7 @@ app.use(
     cookie: { 
       secure: isProd ?? false,
       maxAge: expireTime, 
-      httpOnly: true,
-      sameSite: 'none'
+      httpOnly: isProd ?? false,
     }
   })
 );
