@@ -42,7 +42,7 @@ app.use(cors({
 app.use(express.json());
 
 if (isProd) {
-  app.set('trust proxy', 1);
+  // app.set('trust proxy', 1);
 }
 
 app.use(
@@ -55,6 +55,7 @@ app.use(
       secure: isProd ?? false,
       maxAge: expireTime, 
       httpOnly: isProd ?? false,
+      sameSite: isProd ? 'none' : 'lax'
     }
   })
 );
