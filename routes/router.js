@@ -88,7 +88,7 @@ router.post("/login", async (req, res) => {
 
     res.cookie('role', user.user_type, {
       expires: new Date(Date.now() + 900000), 
-      secure: true,
+      secure: process.env.NODE_ENV === 'production' ?? false,
       httpOnly: true,
       sameSite: 'none'
     });
