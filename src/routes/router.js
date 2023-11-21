@@ -3,9 +3,9 @@ const bcrypt = require("bcrypt");
 const Joi = require("joi");
 
 const db_users = require("../database/users");
-const { generateJwtToken } = require("../jwt");
-const { verifyJwtToken } = require("../jwt");
-const { jwtGuard } = require("../jwt");
+const { verifyJwtToken, jwtGuard, generateJwtToken } = require("../jwt");
+const { blackListToken } = require("../database/jwt.query");
+
 const saltRounds = 12;
 
 const passwordSchema = Joi.object({
@@ -21,9 +21,10 @@ const passwordSchema = Joi.object({
 
 router.get("/checklogin", async (req, res) => {
   const token = req.cookies["lieu.sid"];
-  const user = verifyJwtToken(token);
+  if (!token) return res.json({ authenticated: false });
+  const authenticated = await verifyJwtToken(token);
   return res.json({
-    authenticated: user.authenticated,
+    authenticated,
   });
 });
 
@@ -100,7 +101,14 @@ router.post("/login", async (req, res) => {
   res.cookie("lieu.sid", token, {
     secure: process.env.NODE_ENV === "production" ?? false,
     httpOnly: true,
-    sameSite: "none",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+  });
+
+  res.cookie("role", user.user_type, {
+    expiry: new Date(Date.now() + 900000),
+    secure: process.env.NODE_ENV === "production" ?? false,
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
   });
 
   return res.status(200).json({
@@ -115,17 +123,19 @@ router.post("/login", async (req, res) => {
 });
 
 router.get("/logout", async (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({
-        message: "Logout failed",
-      });
-    } else {
-      return res.status(200).json({
-        message: "Logged out successfully",
-      });
-    }
-  });
+  const token = req.cookies["lieu.sid"];
+  if (!token) {
+    return res.json({ message: "Successfully logged out" });
+  }
+  try {
+    await blackListToken(token);
+    return res
+      .clearCookie("lieu.sid")
+      .json({ message: "Successfully logged out" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 });
 
 router.get("/me", jwtGuard, async (req, res) => {

@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { isTokenBlackListed } = require("./database/jwt.query");
 
 const generateJwtToken = (user) => {
   const token = jwt.sign(
@@ -14,16 +15,20 @@ const generateJwtToken = (user) => {
   return token;
 };
 
-const verifyJwtToken = (token) => {
+const verifyJwtToken = async (token) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    return { ...decoded, authenticated: true };
+    jwt.verify(token, process.env.JWT_SECRET);
+    const isBlacklisted = await isTokenBlackListed(token);
+    if (isBlacklisted) {
+      return false;
+    }
+    return true;
   } catch (err) {
-    return { authenticated: false };
+    return false;
   }
 };
 
-const jwtGuard = (req, res, next) => {
+const jwtGuard = async (req, res, next) => {
   const token = req.cookies["lieu.sid"];
 
   if (!token) {
@@ -34,7 +39,10 @@ const jwtGuard = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
+    const result = await isTokenBlackListed(token);
+    if (result) {
+      return res.status(403).json({ message: "token expired" });
+    }
     req.user = decoded;
 
     return next();
