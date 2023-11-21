@@ -7,6 +7,7 @@ const { verifyJwtToken, jwtGuard, generateJwtToken } = require("../jwt");
 const { blackListToken } = require("../database/jwt.query");
 
 const saltRounds = 12;
+const isProd = process.env.NODE_ENV === "production";
 
 const passwordSchema = Joi.object({
   password: Joi.string()
@@ -99,16 +100,17 @@ router.post("/login", async (req, res) => {
   const token = generateJwtToken(user);
 
   res.cookie("lieu.sid", token, {
-    secure: process.env.NODE_ENV === "production" ?? false,
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+    expiry: new Date(Date.now() + 900000),
+    secure: isProd ?? false,
+    httpOnly: isProd ?? false,
+    sameSite: isProd ? "none" : "strict",
   });
 
   res.cookie("role", user.user_type, {
     expiry: new Date(Date.now() + 900000),
-    secure: process.env.NODE_ENV === "production" ?? false,
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+    secure: false,
+    httpOnly: false,
+    sameSite: isProd ? "none" : "strict",
   });
 
   return res.status(200).json({
