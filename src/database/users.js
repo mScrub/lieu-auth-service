@@ -1,4 +1,4 @@
-const mySqlDatabase = include('databaseConnectionSQL');
+const mySqlDatabase = require("./databaseConnectionSQL");
 
 async function createUser(postData) {
   let createUserSQL = `
@@ -12,14 +12,14 @@ async function createUser(postData) {
   let params = {
     email: postData.email,
     passwordHash: postData.hashedPassword,
-    username: postData.username
-  }
+    username: postData.username,
+  };
 
   try {
     await mySqlDatabase.query(createUserSQL, params);
     console.log("Successfully created user");
     return {
-      createFlag: true
+      createFlag: true,
     };
   } catch (err) {
     console.log("Error inserting user");
@@ -28,7 +28,7 @@ async function createUser(postData) {
       return {
         createFlag: false,
         errorMsg: err.message,
-      }
+      };
     }
     return false;
   }
@@ -55,9 +55,7 @@ async function getUser(username) {
   }
 }
 
-
-
 module.exports = {
   createUser,
-  getUser
+  getUser,
 };
