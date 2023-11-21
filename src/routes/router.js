@@ -133,6 +133,7 @@ router.get("/logout", async (req, res) => {
     await blackListToken(token);
     return res
       .clearCookie("lieu.sid")
+      .clearCookie("role")
       .json({ message: "Successfully logged out" });
   } catch (err) {
     console.error(err);
