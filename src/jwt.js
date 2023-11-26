@@ -10,7 +10,7 @@ const generateJwtToken = (user) => {
       userType: user.user_type,
     },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN },
+    { expiresIn: process.env.JWT_EXPIRES_IN }
   );
   return token;
 };
@@ -47,7 +47,6 @@ const jwtGuard = async (req, res, next) => {
 
     return next();
   } catch (err) {
-    console.error(err);
     return res.status(403).json({ message: "Failed to verify token" });
   }
 };
