@@ -9,7 +9,7 @@ const port = process.env.PORT || 3000;
 
 const app = express();
 
-app.use(IpFilter([process.env.WHITELIST_IP], { mode: "allow", log: true }));
+app.use(IpFilter([process.env.WHITELIST_IP], { mode: "allow" }));
 
 app.use(
   cors({
@@ -23,6 +23,10 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/", router);
+
+app.use("*", (_req, res) => {
+  return res.status(404).json();
+});
 
 app.use(errorHandler);
 
