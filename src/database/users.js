@@ -16,20 +16,19 @@ async function createUser(postData) {
   };
 
   try {
-    await mySqlDatabase.query(createUserSQL, params);
-    console.log("Successfully created user");
+    const results = await mySqlDatabase.query(createUserSQL, params);
     return {
       createFlag: true,
+      insertId: results[0].insertId,
     };
   } catch (err) {
-    console.log("Error inserting user");
-    console.log(err);
     if (err.message && err.message.includes("Duplicate")) {
       return {
         createFlag: false,
         errorMsg: err.message,
       };
     }
+    console.log(err);
     return false;
   }
 }

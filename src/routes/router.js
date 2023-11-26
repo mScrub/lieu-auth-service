@@ -5,9 +5,9 @@ const Joi = require("joi");
 const db_users = require("../database/users");
 const { verifyJwtToken, jwtGuard, generateJwtToken } = require("../jwt");
 const { blackListToken } = require("../database/jwt.query");
+const { setCookie } = require("../util");
 
 const saltRounds = 12;
-const isProd = process.env.NODE_ENV === "production";
 
 const passwordSchema = Joi.object({
   password: Joi.string()
@@ -61,19 +61,31 @@ router.post("/signup", async (req, res) => {
         hashedPassword,
         username,
       });
-      if (success.createFlag === true) {
-        res.status(201).json({
-          message: "User created successfully",
-        });
-      } else {
-        res.status(400).json({
-          message: `Failed to create the user ${email}, ${name}`,
+      if (!success.createFlag) {
+        return res.status(400).json({
+          message: `Failed to create the user`,
           title: "User creation failed",
           errorMsg: success.errorMsg,
         });
       }
+
+      const token = generateJwtToken({
+        user_id: success.insertId,
+        email: email,
+        username: username,
+        user_type: "USER",
+      });
+
+      setCookie("lieu.sid", token, res);
+      setCookie("role", "USER", res);
+
+      return res.status(201).json({
+        id: success.insertId,
+        userType: "USER",
+      });
     }
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       message: "Internal Server Error",
     });
@@ -99,24 +111,12 @@ router.post("/login", async (req, res) => {
 
   const token = generateJwtToken(user);
 
-  res.cookie("lieu.sid", token, {
-    expiry: new Date(Date.now() + 900000),
-    secure: isProd ?? false,
-    httpOnly: isProd ?? false,
-    sameSite: isProd ? "none" : "strict",
-  });
-
-  res.cookie("role", user.user_type, {
-    expiry: new Date(Date.now() + 900000),
-    secure: false,
-    httpOnly: false,
-    sameSite: isProd ? "none" : "strict",
-  });
+  setCookie("lieu.sid", token, res);
+  setCookie("role", user.user_type, res);
 
   return res.status(200).json({
     message: "Login successful!",
     user: {
-      user_id: user.user_id,
       user_name: user.name,
       email: user.email,
       user_type: user.user_type,
@@ -145,9 +145,11 @@ router.get("/me", jwtGuard, async (req, res) => {
   const user = req.user;
 
   return res.json({
+    id: user.id,
     username: user.username,
     email: user.email,
     user_type: user.userType,
+    authenticated: true,
   });
 });
 
