@@ -1,0 +1,271 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Lieu Summarizer - OpenAPI 3.0",
+    "description": "Lieu services, an application where users can submit lengthy texts and have that text summarized based on the user's input. In this first iteration, we've only implemented the foundation of the service and intend to add on more quality of life features in the future. We look forward to additional help in improving the API.",
+    "contact": {
+      "email": "lieuservices@gmail.com"
+    },
+    "license": {
+      "name": "Lieu © 2023 "
+    },
+    "version": "1.0"
+  },
+  "servers": [{
+    "url": "https://krimxfjgat.us18.qoddiapp.com"
+  }],
+  "paths": {
+    "/checklogin": {
+      "get": {
+        "tags": ["login status check"],
+        "summary": "Check login status of user",
+        "description": "Check if the user is authenticated based on the provided token",
+        "parameters": [{
+          "name": "token",
+          "in": "query",
+          "description": "JWT token for user authentication",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "requestBody": {
+          "description": "Request body for checking login status",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "example": {
+                  "authenticated": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/signup": {
+      "post": {
+        "tags": ["signup"],
+        "summary": "Sign up for lieu services",
+        "description": "Input required to create an account",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful user object creation",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "1",
+                  "userType": "USER"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description": "Bad request",
+            "content": {
+              "application/json" : {
+                "example" : {
+                  "message": "Password needs 1 upper case, 1 lowercase, 1 special character and a number",
+                  "isLoggedIn": false
+                }
+              }
+            }
+          },
+          "500" : {
+            "description": "Server error", 
+            "content": {
+              "application/json": { 
+                "example" : {
+                  "message" : "Internal server error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/login": {
+      "get": {
+        "tags": ["login user"],
+        "summary": "User login",
+        "description": "Validate user, exchange user credentials for token",
+        "requestBody": {
+          "description": "Request body for user login",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLogin"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation!",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Login successful!",
+                  "user": {
+                    "user_name": "lieu",
+                    "email": "lieu@gmail.com",
+                    "user_type": "USER"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description": "Bad request",
+            "content": {
+              "application/json" : {
+                "example" : {
+                  "message" : "You entered the wrong username or password!"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/logout": {
+      "get": {
+        "tags": ["logout user"],
+        "summary": "User logout",
+        "description": "Destroys the user's cookie/session",
+        "requestBody": {
+          "description": "Request body for user logout",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation!",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Successfully logged out!"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description": "Unsuccessful response",
+            "content": {
+              "application/json" : {
+                "example" : {
+                  "message" : "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "tags": ["user data"],
+        "summary": "User data",
+        "description": "Get user object credentials/information",
+        "requestBody": {
+          "description": "Request body for user data",
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "user" : "request user object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation!",
+            "content": {
+              "application/json": {
+                "example": {
+                    "id": "1",
+                    "username": "lieu",
+                    "email": "lieu@gmail.com",
+                    "user_type": "USER",
+                    "authenticated": true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "lieu@gmail.com"
+          },
+          "username": {
+            "type": "string",
+            "example": "lieu"
+          },
+          "password": {
+            "type": "string",
+            "example": "123abcABC((("
+          }
+        }
+      },
+      "UserLogin": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "lieu"
+          },
+          "password": {
+            "type": "string",
+            "example": "123abcABC((("
+          }
+        }
+      }
+    }
+  }
+}

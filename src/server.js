@@ -4,6 +4,8 @@ const cookieParser = require("cookie-parser");
 const { IpFilter } = require("express-ipfilter");
 const router = require("./routes/router");
 const errorHandler = require("./error.handler");
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./lieuSummarizerSwagger.json');
 
 const port = process.env.PORT || 3000;
 
@@ -19,6 +21,7 @@ app.use(
   })
 );
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(express.json());
 app.use(cookieParser());
 

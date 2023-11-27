@@ -20,6 +20,16 @@ const passwordSchema = Joi.object({
     .required(),
 });
 
+/**
+ * Route checking login information.
+ * @name get/checklogin
+ * @function
+ * @memberof module:routers
+ * @param {string} path - Express path
+ * @param {callback} middleware - Express middleware.
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 router.get("/checklogin", async (req, res) => {
   const token = req.cookies["lieu.sid"];
   if (!token) return res.json({ authenticated: false });
@@ -29,6 +39,18 @@ router.get("/checklogin", async (req, res) => {
   });
 });
 
+/**
+ * Route serving sign up fields for user.
+ * @name post/signup
+ * @function
+ * @memberof module:routers
+ * @param {string} path - Express path
+ * @param {callback} middleware - Express middleware.
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Object} JSON response indicating success or failure
+ * @throws {Object} JSON response indicating internal server error
+ */
 router.post("/signup", async (req, res) => {
   try {
     let email = req.body.email;
@@ -92,6 +114,18 @@ router.post("/signup", async (req, res) => {
   }
 });
 
+
+/**
+ * Route serving login field for user.
+ * @name post/login
+ * @function
+ * @memberof module:routers
+ * @param {string} path - Express path
+ * @param {callback} middleware - Express middleware.
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Object} JSON response indicating success or failure
+ */
 router.post("/login", async (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
@@ -124,6 +158,18 @@ router.post("/login", async (req, res) => {
   });
 });
 
+/**
+ * Route serving user session destruction.
+ * @name get/logout
+ * @function
+ * @memberof module:routers
+ * @param {string} path - Express path
+ * @param {callback} middleware - Express middleware.
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Object} JSON response indicating success or failure
+ * @throws {Object} JSON response indicating internal server error
+ */
 router.get("/logout", async (req, res) => {
   const token = req.cookies["lieu.sid"];
   if (!token) {
@@ -141,6 +187,17 @@ router.get("/logout", async (req, res) => {
   }
 });
 
+/**
+ * Route providing user data
+ * @name get/me
+ * @function
+ * @memberof module:routers
+ * @param {string} path - Express path
+ * @param {callback} middleware - Express middleware.
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Object} JSON response indicating success or failure
+ */
 router.get("/me", jwtGuard, async (req, res) => {
   const user = req.user;
 
