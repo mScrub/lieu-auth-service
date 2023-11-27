@@ -50,42 +50,41 @@ router.post("/signup", async (req, res) => {
       } else if (errorMsg.includes("(?=.*[0-9])")) {
         errorMsg = "Password needs to have 1 number.";
       }
-      res.status(400).json({
+      return res.status(400).json({
         message: errorMsg,
         isLoggedIn: false,
       });
-      return;
-    } else {
-      let success = await db_users.createUser({
-        email,
-        hashedPassword,
-        username,
-      });
-      if (!success.createFlag) {
-        return res.status(400).json({
-          message: `Failed to create the user`,
-          title: "User creation failed",
-          errorMsg: success.errorMsg,
-        });
-      }
+    }
 
-      const token = generateJwtToken({
-        user_id: success.insertId,
-        email: email,
-        username: username,
-        user_type: "USER",
-      });
+    let success = await db_users.createUser({
+      email,
+      hashedPassword,
+      username,
+    });
 
-      setCookie("lieu.sid", token, res);
-      setCookie("role", "USER", res);
-
-      return res.status(201).json({
-        id: success.insertId,
-        userType: "USER",
+    if (!success.createFlag) {
+      res.status(400).json({
+        message: `Failed to create the user ${email}`,
+        title: "User creation failed",
+        errorMsg: success.errorMsg,
       });
     }
+
+    const token = generateJwtToken({
+      id: success.insertId,
+      username,
+      email,
+      userType: "USER",
+    });
+
+    setCookie("lieu.sid", token, res);
+    setCookie("role", "USER", res);
+
+    return res.status(201).json({
+      message: "User created successfully",
+      user_type: "USER",
+    });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: "Internal Server Error",
     });
@@ -117,6 +116,7 @@ router.post("/login", async (req, res) => {
   return res.status(200).json({
     message: "Login successful!",
     user: {
+      user_id: user.user_id,
       user_name: user.name,
       email: user.email,
       user_type: user.user_type,
@@ -149,7 +149,6 @@ router.get("/me", jwtGuard, async (req, res) => {
     username: user.username,
     email: user.email,
     user_type: user.userType,
-    authenticated: true,
   });
 });
 
