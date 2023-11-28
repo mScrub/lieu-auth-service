@@ -25,7 +25,7 @@ async function createUser(postData) {
     if (err.message && err.message.includes("Duplicate")) {
       return {
         createFlag: false,
-        errorMsg: err.message,
+        errorMsg: "username already exists",
       };
     }
     console.log(err);
@@ -54,7 +54,22 @@ async function getUser(username) {
   }
 }
 
+const updateUserType = async (user_id, user_type) => {
+  const query = `
+    UPDATE user
+    SET user_type_id = (SELECT user_type_id FROM user_type WHERE user_type = :user_type)
+    WHERE user_id = :user_id;
+  `;
+  const params = {
+    user_id: user_id,
+    user_type: user_type,
+  };
+  const results = await mySqlDatabase.query(query, params);
+  return results[0][0];
+};
+
 module.exports = {
   createUser,
   getUser,
+  updateUserType,
 };

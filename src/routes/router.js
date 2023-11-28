@@ -63,15 +63,14 @@ router.post("/signup", async (req, res) => {
     });
 
     if (!success.createFlag) {
-      res.status(400).json({
-        message: `Failed to create the user ${email}`,
+      return res.status(400).json({
         title: "User creation failed",
-        errorMsg: success.errorMsg,
+        message: success.errorMsg,
       });
     }
 
     const token = generateJwtToken({
-      id: success.insertId,
+      user_id: success.insertId,
       username,
       email,
       userType: "USER",
@@ -81,11 +80,11 @@ router.post("/signup", async (req, res) => {
     setCookie("role", "USER", res);
 
     return res.status(201).json({
-      message: "User created successfully",
+      id: success.insertId,
       user_type: "USER",
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: "Internal Server Error",
     });
   }
@@ -135,6 +134,21 @@ router.get("/logout", async (req, res) => {
       .clearCookie("lieu.sid")
       .clearCookie("role")
       .json({ message: "Successfully logged out" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.put("/privileges", async (req, res) => {
+  const { userId, userType } = req.body;
+  if (!userId || !userType) {
+    return res.status(400).json({ message: "Missing userId or userType" });
+  }
+
+  try {
+    await db_users.updateUserType(userId, userType);
+    return res.json({ message: "Successfully updated user type" });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal Server Error" });
